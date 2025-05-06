@@ -53,8 +53,8 @@ USER = UserBase(username="kalash")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/demo_db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-engine = create_engine(DATABASE_URL, echo=False)
-session = sessionmaker(bind=engine)
+engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
+session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 db = session()
 
