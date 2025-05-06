@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Body, Path, status, UploadFile, File, HTTPException
+from fastapi.responses import RedirectResponse
 from typing import Annotated
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -57,8 +58,6 @@ engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 db = session()
-
-NOTES: list[Note] = list()
 app = FastAPI()
 # oauth2scheme = OAuth2PasswordBearer(tokenUrl="autobootstrap")
 
@@ -73,6 +72,10 @@ app = FastAPI()
 #     if user_info.user == USER and user_info.password == PASS:
 #         return {**user_info.model_dump(), "status": "Logged In Successfully!"}
 #     return {**user_info.model_dump(), "status": "Wrong credentials!"}
+
+@app.get("/", include_in_schema=False)
+async def redirect_to_docs():
+    return RedirectResponse(url="/docs")
 
 @app.post("/register/", response_model=UserOut, tags=[Tags.user])
 async def register(user_info: Annotated[UserIn, Body()]):
@@ -150,7 +153,6 @@ async def post_note(note_data: Annotated[EditableNote, Body()]) -> Note:
             body = note_data.body or ""
         )
     )
-    NOTES.append(note)
     return note
 
 @app.put("/notes/{note_id}", response_model=Note, tags=[Tags.notes])
