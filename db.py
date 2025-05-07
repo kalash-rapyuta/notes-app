@@ -12,7 +12,7 @@ class User(Base):
     __tablename__ = "users"
 
     username: Mapped[str] = mapped_column(String(50), primary_key=True, unique=True)
-    password: Mapped[str] = mapped_column(String(50))
+    password: Mapped[str] = mapped_column(String(200))
 
 
 class Registry(Base):
@@ -40,9 +40,12 @@ def _create_user(db: Session, username: str, password: str) -> User:
     db.refresh(new_user)
     return new_user
 
+def _get_user(db: Session, username: str) -> Union[User, None]:
+    user = db.query(User).filter(User.username == username).first()
+    if user: return user
+    return None
+
 def _get_all_notes(db: Session, user: User) -> Union[list[Note], None]:
-    # uuids = db.query(Registry.uuid).filter(Registry.username == user.username).all()
-    # print(f"//////////////////////////// {uuids} /////////////////////////")
     uuids = [uuid[0] for uuid in db.query(Registry.uuid).filter(Registry.username == user.username).all()]
     notes = [db.query(Note).filter(Note.uuid == uuid).first() for uuid in uuids]
 
